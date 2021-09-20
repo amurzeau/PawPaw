@@ -14,41 +14,6 @@ env:
   HOMEBREW_NO_AUTO_UPDATE: 1
 
 jobs:
-  # macOS native intel build
-  macos:
-    runs-on: macos-10.15
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-    - name: Set up cache
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/PawPawBuilds/builds
-          ~/PawPawBuilds/downloads
-          ~/PawPawBuilds/targets
-        key: cache-macos
-    - name: Set up dependencies
-      run: |
-        brew install cmake jq meson
-    - name: Bootstrap macOS intel
-      shell: bash
-      run: |
-        ./bootstrap-jack2.sh macos && ./bootstrap-qt.sh macos && ./.cleanup.sh macos
-    #- name: Build macOS intel
-      #shell: bash
-      #run: |
-        #./build-jack2.sh macos
-        #./pack-jack2.sh  macos
-    #- name: Set sha8
-      #id: slug
-      #run: echo "::set-output name=sha8::$(echo ${{ github.sha }} | cut -c1-8)"
-    #- uses: actions/upload-artifact@v2
-      #with:
-        #name: jack2-macOS-intel-${{ github.event.pull_request.number || steps.slug.outputs.sha8 }}
-        #path: PawPaw/jack2-macOS-*.tar.gz
-
   # macOS native universal build
   macos_universal:
     runs-on: macos-latest
@@ -86,7 +51,7 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: jack2-macOS-universal-${{ github.event.pull_request.number || steps.slug.outputs.sha8 }}
-        path: PawPaw/jack2-macOS-*.tar.gz
+        path: ./jack2-macOS-*.tar.gz
 
   # linux with win32 cross-compilation
   win32:
@@ -135,7 +100,7 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: jack2-win32-${{ github.event.pull_request.number || steps.slug.outputs.sha8 }}
-        path: PawPaw/jack2-win*.exe
+        path: ./jack2-win*.exe
 
   # linux with win64 cross-compilation
   win64:
@@ -184,7 +149,7 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: jack2-win64-${{ github.event.pull_request.number || steps.slug.outputs.sha8 }}
-        path: PawPaw/jack2-win*.exe
+        path: ./jack2-win*.exe
 
   # Linux native
   linux:
@@ -230,4 +195,4 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: jack2-linux-${{ github.event.pull_request.number || steps.slug.outputs.sha8 }}
-        path: PawPaw/jack2-*.tar.gz
+        path: ./jack2-*.tar.gz
