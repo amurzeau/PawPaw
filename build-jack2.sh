@@ -130,6 +130,7 @@ fi
 
 download qjackctl "${QJACKCTL_VERSION}" "https://github.com/rncbc/qjackctl.git" "" "git"
 
+ls -la  ~/PawPawBuilds/builds/win32/qjackctl-master
 build_cmake qjackctl "${QJACKCTL_VERSION}" \
 	"-DCMAKE_PREFIX_PATH=${PAWPAW_PREFIX}/lib/cmake;/usr/lib/x86_64-linux-gnu/cmake" \
 	-DJack_ROOT=${jack2_prefix}${jack2_extra_prefix} \
