@@ -1,6 +1,8 @@
 #!/bin/bash
 
-set -e
+set -ex
+
+ls -laR  ~/PawPawBuilds/builds/win32/qjackctl-master
 
 cd $(dirname ${0})
 PAWPAW_ROOT="${PWD}"
@@ -130,7 +132,7 @@ fi
 
 download qjackctl "${QJACKCTL_VERSION}" "https://github.com/rncbc/qjackctl.git" "" "git"
 
-ls -la  ~/PawPawBuilds/builds/win32/qjackctl-master
+ls -laR  ~/PawPawBuilds/builds/win32/qjackctl-master
 build_cmake qjackctl "${QJACKCTL_VERSION}" \
 	"-DCMAKE_PREFIX_PATH=${PAWPAW_PREFIX}/lib/cmake;/usr/lib/x86_64-linux-gnu/cmake" \
 	-DJack_ROOT=${jack2_prefix}${jack2_extra_prefix} \
