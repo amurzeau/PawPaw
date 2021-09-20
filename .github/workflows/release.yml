@@ -8,7 +8,6 @@ on:
     branches:
       - '*'
   workflow_dispatch:
-  
 env:
   BOOTSTRAP_VERSION: 1
   DEBIAN_FRONTEND: noninteractive
@@ -40,8 +39,8 @@ jobs:
     #- name: Build macOS intel
       #shell: bash
       #run: |
-		#./build-jack2.sh macos
-		#./pack-jack2.sh  macos
+        #./build-jack2.sh macos
+        #./pack-jack2.sh  macos
     #- name: Set sha8
       #id: slug
       #run: echo "::set-output name=sha8::$(echo ${{ github.sha }} | cut -c1-8)"
@@ -79,8 +78,8 @@ jobs:
     - name: Build macOS universal
       shell: bash
       run: |
-		./build-jack2.sh macos-universal
-		./pack-jack2.sh macos-universal
+        ./build-jack2.sh macos-universal
+        ./pack-jack2.sh macos-universal
     - name: Set sha8
       id: slug
       run: echo "::set-output name=sha8::$(echo ${{ github.sha }} | cut -c1-8)"
@@ -128,8 +127,8 @@ jobs:
     - name: Build win32 cross-compiled
       shell: bash
       run: |
-		xvfb-run ./build-jack2.sh win32
-		xvfb-run ./pack-jack2.sh  win32
+        xvfb-run ./build-jack2.sh win32
+        xvfb-run ./pack-jack2.sh  win32
     - name: Set sha8
       id: slug
       run: echo "::set-output name=sha8::$(echo ${{ github.sha }} | cut -c1-8)"
@@ -177,8 +176,8 @@ jobs:
     - name: Build win64 cross-compiled
       shell: bash
       run: |
-		xvfb-run ./build-jack2.sh win64
-		xvfb-run ./pack-jack2.sh  win64
+        xvfb-run ./build-jack2.sh win64
+        xvfb-run ./pack-jack2.sh  win64
     - name: Set sha8
       id: slug
       run: echo "::set-output name=sha8::$(echo ${{ github.sha }} | cut -c1-8)"
@@ -223,8 +222,8 @@ jobs:
     - name: Build macOS universal
       shell: bash
       run: |
-		./build-jack2.sh linux
-		./pack-jack2.sh  linux
+        ./build-jack2.sh linux
+        ./pack-jack2.sh  linux
     - name: Set sha8
       id: slug
       run: echo "::set-output name=sha8::$(echo ${{ github.sha }} | cut -c1-8)"
