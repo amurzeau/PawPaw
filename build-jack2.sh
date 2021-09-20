@@ -123,19 +123,20 @@ fi
 # ---------------------------------------------------------------------------------------------------------------------
 # qjackctl (if qt is available)
 
-if [ -f "${PAWPAW_PREFIX}/bin/moc" ]; then
-    download qjackctl "${QJACKCTL_VERSION}" https://download.sourceforge.net/qjackctl
-
-    build_autoconf qjackctl "${QJACKCTL_VERSION}" "--enable-jack-version ${qjackctl_extra_args}"
-    build_cmake qjackctl "${QJACKCTL_VERSION}" \
-        "-DCMAKE_PREFIX_PATH=${PAWPAW_PREFIX}/lib/cmake;/usr/lib/x86_64-linux-gnu/cmake" \
-        -DJack_ROOT=${jack2_prefix}${jack2_extra_prefix} \
-        -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \
-        --debug-find
-
-    if [ "${WIN32}" -eq 1 ]; then
-        copy_file qjackctl "${QJACKCTL_VERSION}" "build/src/qjackctl.exe" "${jack2_prefix}/bin/qjackctl.exe"
-    fi
+echo "Checking moc in ${PAWPAW_PREFIX}/bin/moc"
+if [ -f "${PAWPAW_PREFIX}/bin/moc" ] || command -v moc; then
+	echo "Moc is available in prefix"
 fi
 
+download qjackctl "${QJACKCTL_VERSION}" "https://github.com/rncbc/qjackctl.git" "" "git"
+
+build_cmake qjackctl "${QJACKCTL_VERSION}" \
+	"-DCMAKE_PREFIX_PATH=${PAWPAW_PREFIX}/lib/cmake;/usr/lib/x86_64-linux-gnu/cmake" \
+	-DJack_ROOT=${jack2_prefix}${jack2_extra_prefix} \
+	-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \
+	--debug-find
+
+if [ "${WIN32}" -eq 1 ]; then
+	copy_file qjackctl "${QJACKCTL_VERSION}" "build/src/qjackctl.exe" "${jack2_prefix}/bin/qjackctl.exe"
+fi
 # ---------------------------------------------------------------------------------------------------------------------
