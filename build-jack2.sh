@@ -133,8 +133,7 @@ download qjackctl "${QJACKCTL_VERSION}" "https://github.com/rncbc/qjackctl.git" 
 build_cmake qjackctl "${QJACKCTL_VERSION}" \
 	"-DCMAKE_PREFIX_PATH=${PAWPAW_PREFIX}/lib/cmake;/usr/lib/x86_64-linux-gnu/cmake" \
 	-DJack_ROOT=${jack2_prefix}${jack2_extra_prefix} \
-	-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \
-	--debug-find
+	-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
 
 if [ "${WIN32}" -eq 1 ]; then
 	copy_file qjackctl "${QJACKCTL_VERSION}" "build/src/qjackctl.exe" "${jack2_prefix}/bin/qjackctl.exe"
