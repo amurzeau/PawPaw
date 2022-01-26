@@ -1,0 +1,245 @@
+name: release
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+env:
+  BOOTSTRAP_VERSION: 1
+  DEBIAN_FRONTEND: noninteractive
+  HOMEBREW_NO_AUTO_UPDATE: 1
+
+jobs:
+  # macOS native intel build
+  macos:
+    runs-on: macos-10.15
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Set up cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/PawPawBuilds/builds
+          ~/PawPawBuilds/downloads
+          ~/PawPawBuilds/targets
+        key: cache-macos
+    - name: Set up dependencies
+      run: |
+        [ -d ~/PawPawBuilds ] && find ~/PawPawBuilds -ls
+        brew install cmake jq meson
+    - name: Bootstrap macOS intel
+      shell: bash
+      run: |
+        ./bootstrap-jack2.sh macos && ./bootstrap-qt.sh macos && ./.cleanup.sh macos
+    - name: Build macOS intel
+      shell: bash
+      run: |
+        rm -rf ~/PawPawBuilds/builds/macos/{qjackctl*,jack*,jack-router*}
+        ./build-jack2.sh macos
+        ./pack-jack2.sh macos
+        [ -d ~/PawPawBuilds ] && find ~/PawPawBuilds -ls
+    - name: Set sha8
+      id: slug
+      run: echo "::set-output name=sha8::$(echo ${{ github.sha }} | cut -c1-8)"
+    - uses: actions/upload-artifact@v2
+      with:
+        name: jack2-macOS-intel-${{ github.event.pull_request.number || steps.slug.outputs.sha8 }}
+        path: ./jack2-macOS-*.tar.gz
+
+  # macOS native universal build
+  macos_universal:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Set up cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/PawPawBuilds/builds
+          ~/PawPawBuilds/downloads
+          ~/PawPawBuilds/targets
+        key: cache3-macos-universal
+    - name: Set up dependencies
+      run: |
+        [ -d ~/PawPawBuilds ] && find ~/PawPawBuilds -ls
+        brew install cmake jq meson
+    - name: Fix up Xcode
+      run: |
+        sudo rm -Rf /Library/Developer/CommandLineTools/SDKs/*
+        sudo xcode-select -s "/Applications/Xcode_12.3.app"
+    - name: Bootstrap macOS universal
+      shell: bash
+      run: |
+        ./bootstrap-jack2.sh macos-universal && ./bootstrap-qt.sh macos-universal && ./.cleanup.sh macos-universal
+    - name: Build macOS universal
+      shell: bash
+      run: |
+        rm -rf ~/PawPawBuilds/builds/macos-universal/{qjackctl*,jack*,jack-router*}
+        ./build-jack2.sh macos-universal
+        ./pack-jack2.sh macos-universal
+        [ -d ~/PawPawBuilds ] && find ~/PawPawBuilds -ls
+    - name: Set sha8
+      id: slug
+      run: echo "::set-output name=sha8::$(echo ${{ github.sha }} | cut -c1-8)"
+    - uses: actions/upload-artifact@v2
+      with:
+        name: jack2-macOS-universal-${{ github.event.pull_request.number || steps.slug.outputs.sha8 }}
+        path: ./jack2-macOS-*.tar.gz
+
+  # linux with win32 cross-compilation
+  win32:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Set up cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/PawPawBuilds/builds
+          ~/PawPawBuilds/debs
+          ~/PawPawBuilds/downloads
+          ~/PawPawBuilds/targets
+        key: cache3-win32
+    - name: Restore debian packages cache
+      run: |
+        [ -d ~/PawPawBuilds ] && find ~/PawPawBuilds -ls
+        if [ -d ~/PawPawBuilds/debs ] && [ "$(ls ~/PawPawBuilds/debs | wc -l)" -ne 0 ]; then \
+          sudo cp ~/PawPawBuilds/debs/*.deb /var/cache/apt/archives/; \
+        fi
+    - name: Set up dependencies
+      run: |
+        wget -qO- https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add - && \
+        sudo dpkg --add-architecture i386 && \
+        sudo apt-add-repository -y 'deb https://dl.winehq.org/wine-builds/ubuntu/ focal main' && \
+        sudo apt-get install -y autopoint build-essential curl cmake jq llvm mingw-w64 qttools5-dev-tools qttools5-dev winehq-stable xvfb \
+          binutils-mingw-w64-i686 g++-mingw-w64-i686
+    - name: Cache debian packages
+      run: |
+        mkdir -p ~/PawPawBuilds/debs && \
+        sudo mv /var/cache/apt/archives/*.deb ~/PawPawBuilds/debs/
+    - name: Bootstrap win32 cross-compiled
+      shell: bash
+      run: |
+        ./bootstrap-jack2.sh win32 && ./bootstrap-qt.sh win32 && ./.cleanup.sh win32
+    - name: Build win32 cross-compiled
+      shell: bash
+      run: |
+        rm -rf ~/PawPawBuilds/builds/win32/{qjackctl*,jack*,jack-router*}
+        ./build-jack2.sh win32
+        xvfb-run ./pack-jack2.sh win32
+        [ -d ~/PawPawBuilds ] && find ~/PawPawBuilds -ls
+    - name: Set sha8
+      id: slug
+      run: echo "::set-output name=sha8::$(echo ${{ github.sha }} | cut -c1-8)"
+    - uses: actions/upload-artifact@v2
+      with:
+        name: jack2-win32-${{ github.event.pull_request.number || steps.slug.outputs.sha8 }}
+        path: ./jack2-win*.exe
+
+  # linux with win64 cross-compilation
+  win64:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Set up cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/PawPawBuilds/builds
+          ~/PawPawBuilds/debs
+          ~/PawPawBuilds/downloads
+          ~/PawPawBuilds/targets
+        key: cache3-win64
+    - name: Restore debian packages cache
+      run: |
+        [ -d ~/PawPawBuilds ] && find ~/PawPawBuilds -ls
+        if [ -d ~/PawPawBuilds/debs ] && [ "$(ls ~/PawPawBuilds/debs | wc -l)" -ne 0 ]; then \
+          sudo cp ~/PawPawBuilds/debs/*.deb /var/cache/apt/archives/; \
+        fi
+    - name: Set up dependencies
+      run: |
+        wget -qO- https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add - && \
+        sudo dpkg --add-architecture i386 && \
+        sudo apt-add-repository -y 'deb https://dl.winehq.org/wine-builds/ubuntu/ focal main' && \
+        sudo apt-get install -y autopoint build-essential curl cmake jq llvm mingw-w64 qttools5-dev-tools qttools5-dev winehq-stable xvfb \
+          binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64
+    - name: Cache debian packages
+      run: |
+        mkdir -p ~/PawPawBuilds/debs && \
+        sudo mv /var/cache/apt/archives/*.deb ~/PawPawBuilds/debs/
+    - name: Bootstrap win64 cross-compiled
+      shell: bash
+      run: |
+        ./bootstrap-jack2.sh win64 && ./bootstrap-qt.sh win64 && ./.cleanup.sh win64
+    - name: Build win64 cross-compiled
+      shell: bash
+      run: |
+        rm -rf ~/PawPawBuilds/builds/win64/{qjackctl*,jack*,jack-router*}
+        ./build-jack2.sh win64
+        xvfb-run ./pack-jack2.sh win64
+        [ -d ~/PawPawBuilds ] && find ~/PawPawBuilds -ls
+    - name: Set sha8
+      id: slug
+      run: echo "::set-output name=sha8::$(echo ${{ github.sha }} | cut -c1-8)"
+    - uses: actions/upload-artifact@v2
+      with:
+        name: jack2-win64-${{ github.event.pull_request.number || steps.slug.outputs.sha8 }}
+        path: ./jack2-win*.exe
+  # Linux native
+  linux:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Set up cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/PawPawBuilds/builds
+          ~/PawPawBuilds/debs
+          ~/PawPawBuilds/downloads
+          ~/PawPawBuilds/targets
+        key: cache-linux
+    - name: Restore debian packages cache
+      run: |
+        if [ -d ~/PawPawBuilds/debs ] && [ "$(ls ~/PawPawBuilds/debs | wc -l)" -ne 0 ]; then \
+          sudo cp ~/PawPawBuilds/debs/*.deb /var/cache/apt/archives/; \
+        fi
+    - name: Set up dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential curl cmake jq qttools5-dev libasound2-dev libx11-dev libqt5x11extras5-dev python3 libsamplerate-dev libdbus-1-dev libexpat1-dev libsndfile1-dev libncurses-dev libreadline-dev libraw1394-dev libffado-dev libopus-dev libsystemd-dev po-debconf
+    - name: Cache debian packages
+      run: |
+        mkdir -p ~/PawPawBuilds/debs && \
+        sudo mv /var/cache/apt/archives/*.deb ~/PawPawBuilds/debs/
+    - name: Bootstrap Linux native
+      shell: bash
+      run: |
+        ./bootstrap-jack2.sh linux && ./.cleanup.sh linux
+    - name: Build linux
+      shell: bash
+      run: |
+        rm -rf ~/PawPawBuilds/builds/linux/{qjackctl*,jack*,jack-router*}
+        ./build-jack2.sh linux
+        ./pack-jack2.sh linux
+        [ -d ~/PawPawBuilds ] && find ~/PawPawBuilds -ls
+    - name: Set sha8
+      id: slug
+      run: echo "::set-output name=sha8::$(echo ${{ github.sha }} | cut -c1-8)"
+    - uses: actions/upload-artifact@v2
+      with:
+        name: jack2-linux-${{ github.event.pull_request.number || steps.slug.outputs.sha8 }}
+        path: ./jack2-*.tar.gz
