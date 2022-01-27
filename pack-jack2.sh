@@ -29,7 +29,7 @@ source setup/versions.sh
 
 # ---------------------------------------------------------------------------------------------------------------------
 
-jack2_repo="https://github.com/jackaudio/jack2.git"
+jack2_repo="https://github.com/amurzeau/jack2.git"
 jack2_prefix="${PAWPAW_PREFIX}-jack2"
 
 if [ "${MACOS}" -eq 1 ]; then
